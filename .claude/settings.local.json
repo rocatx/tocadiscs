@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(open:*)",
+      "Skill(frontend-design)",
+      "Bash(qlmanage -t:*)",
+      "Bash(npm install)",
+      "Bash(npm run build:*)",
+      "Bash(gh auth status:*)",
+      "Bash(brew install:*)",
+      "Bash(gh auth login:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

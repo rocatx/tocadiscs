@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tocadiscs</title>
+
+    <!-- PWA Meta tags -->
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="description" content="Reproductor de música amb estètica de tocadiscos">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- iOS support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Tocadiscs">
+    <link rel="apple-touch-icon" href="icons/icon-192.svg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header minimal -->
+        <header class="header">
+            <span class="brand">TOCADISCS</span>
+            <div class="header-actions">
+                <button class="btn btn-icon" id="btnMiniMode" title="Mode mini">
+                    <svg class="icon-minimize" viewBox="0 0 24 24" width="16" height="16"><path d="M19 13H5v-2h14v2z" fill="currentColor"/></svg>
+                    <svg class="icon-maximize" viewBox="0 0 24 24" width="16" height="16"><path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6v-2z" fill="currentColor"/></svg>
+                </button>
+                <span class="model">Xavier Roca</span>
+            </div>
+        </header>
+
+        <!-- Turntable -->
+        <div class="turntable">
+            <div class="turntable-base">
+                <div class="platter">
+                    <div class="vinyl" id="vinyl">
+                        <div class="vinyl-grooves"></div>
+                        <div class="label">
+                            <span class="label-title" id="labelTitle"></span>
+                            <div class="label-hole"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tonearm" id="tonearm">
+                    <div class="tonearm-pivot"></div>
+                    <div class="tonearm-arm"></div>
+                    <div class="tonearm-head"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Track Info -->
+        <div class="track-display">
+            <div class="track-now-playing">
+                <span class="track-title" id="trackTitle">Sense canço</span>
+                <span class="track-artist" id="trackArtist">---</span>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-section">
+            <span class="time-current" id="timeCurrent">0:00</span>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-track">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+            <span class="time-total" id="timeTotal">0:00</span>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn btn-control" id="btnShuffle" title="Aleatori">
+                <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+            </button>
+            <button class="btn btn-control" id="btnPrev" title="Anterior">
+                <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            </button>
+            <button class="btn btn-play" id="btnPlay" title="Reproduir">
+                <svg class="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <button class="btn btn-control" id="btnStop" title="Aturar">
+                <svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+            </button>
+            <button class="btn btn-control" id="btnNext" title="Seguent">
+                <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            </button>
+            <button class="btn btn-control" id="btnRepeat" title="Repetir">
+                <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+            </button>
+        </div>
+
+        <!-- Volume & Balance -->
+        <div class="volume-section">
+            <button class="btn btn-icon" id="btnMute" title="Silenciar">
+                <svg class="icon-volume" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                <svg class="icon-mute" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+            </button>
+            <div class="volume-slider-container">
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
+            </div>
+            <span class="balance-label">L</span>
+            <div class="balance-slider-container">
+                <input type="range" class="balance-slider" id="balanceSlider" min="-100" max="100" value="0" title="Balanç">
+            </div>
+            <span class="balance-label">R</span>
+        </div>
+
+        <!-- Equalizer -->
+        <div class="equalizer-section" id="equalizerSection">
+            <div class="eq-header">
+                <select class="eq-preset" id="eqPreset">
+                    <option value="flat">Pla</option>
+                    <option value="rock">Rock</option>
+                    <option value="pop">Pop</option>
+                    <option value="jazz">Jazz</option>
+                    <option value="classical">Clàssic</option>
+                    <option value="bass">Baix+</option>
+                    <option value="vocal">Veu</option>
+                </select>
+                <button class="btn btn-icon eq-toggle" id="eqToggle" title="Alternar visualització/controls">
+                    <svg class="icon-sliders" viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+                    <svg class="icon-wave" viewBox="0 0 24 24"><path d="M7.5 5.6L10 7 8.6 3.5 7.5 5.6zm9 0L15 3.5 13.6 7l2.4-1.4zm-4.5 6.9V3h-1v9.5l-3.5 3.5 1 1L12 14l3.5 3.5 1-1-3.5-3.5z"/></svg>
+                </button>
+            </div>
+            <div class="eq-sliders" id="eqSliders">
+                <div class="eq-band" data-freq="60">
+                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
+                    <span class="eq-label">60</span>
+                </div>
+                <div class="eq-band" data-freq="150">
+                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
+                    <span class="eq-label">150</span>
+                </div>
+                <div class="eq-band" data-freq="400">
+                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
+                    <span class="eq-label">400</span>
+                </div>
+                <div class="eq-band" data-freq="1000">
+                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
+                    <span class="eq-label">1k</span>
+                </div>
+                <div class="eq-band" data-freq="2400">
+                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
+                    <span class="eq-label">2.4k</span>
+                </div>
+                <div class="eq-band" data-freq="6000">
+                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
+                    <span class="eq-label">6k</span>
+                </div>
+                <div class="eq-band" data-freq="15000">
+                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
+                    <span class="eq-label">15k</span>
+                </div>
+            </div>
+            <div class="equalizer" id="equalizer">
+                <div class="eq-bar" data-index="0"></div>
+                <div class="eq-bar" data-index="1"></div>
+                <div class="eq-bar" data-index="2"></div>
+                <div class="eq-bar" data-index="3"></div>
+                <div class="eq-bar" data-index="4"></div>
+                <div class="eq-bar" data-index="5"></div>
+                <div class="eq-bar" data-index="6"></div>
+                <div class="eq-bar" data-index="7"></div>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider"></div>
+
+        <!-- Sidebar (Sources + Playlist) -->
+        <div class="sidebar">
+        <!-- Sources -->
+        <div class="audio-sources">
+            <div class="source-tabs">
+                <button class="tab active" data-tab="local">Fitxers</button>
+                <button class="tab" data-tab="folder">Carpeta</button>
+                <button class="tab" data-tab="url">URL</button>
+            </div>
+
+            <div class="source-content">
+                <div class="source-panel active" id="panelLocal">
+                    <label class="file-input-label">
+                        <input type="file" id="fileInput" accept="audio/*,.flac" multiple>
+                        <span class="file-input-text">Afegir fitxers</span>
+                        <span class="file-input-icon">+</span>
+                    </label>
+                </div>
+
+                <div class="source-panel" id="panelFolder">
+                    <label class="file-input-label">
+                        <input type="file" id="folderInput" webkitdirectory directory multiple>
+                        <span class="file-input-text">Seleccionar carpeta</span>
+                        <span class="file-input-icon">+</span>
+                    </label>
+                </div>
+
+                <div class="source-panel" id="panelUrl">
+                    <div class="url-input-group">
+                        <input type="url" id="urlInput" placeholder="https://...">
+                        <button class="btn btn-text" id="btnLoadUrl">Carregar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Playlist -->
+        <div class="playlist" id="playlist">
+            <div class="playlist-header">
+                <span class="playlist-title">Llista</span>
+                <span class="playlist-count" id="playlistCount">0 pistes</span>
+            </div>
+            <ul class="playlist-items" id="playlistItems"></ul>
+        </div>
+        </div><!-- fi sidebar -->
+    </div>
+
+    <audio id="audioPlayer"></audio>
+    <script src="app.js"></script>
+</body>
+</html>

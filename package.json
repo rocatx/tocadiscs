@@ -1,0 +1,51 @@
+{
+  "name": "tocadiscs",
+  "version": "1.0.0",
+  "description": "Reproductor de música amb estètica de tocadiscos",
+  "main": "main.js",
+  "author": "Xavier Roca",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --mac --win",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.xavierroca.tocadiscs",
+    "productName": "Tocadiscs",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "index.html",
+      "styles.css",
+      "app.js",
+      "icons/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.music",
+      "icon": "icons/icon.png",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "icon": "icons/icon.png",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
