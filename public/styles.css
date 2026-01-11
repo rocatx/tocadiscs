@@ -95,24 +95,24 @@ body {
 .turntable {
     display: flex;
     justify-content: center;
-    padding: 20px 0;
+    padding: 12px 0;
 }
 
 .turntable-base {
     position: relative;
-    width: 280px;
-    height: 280px;
+    width: 200px;
+    height: 200px;
     background: var(--bg);
     border: 1px solid var(--border);
 }
 
 .platter {
     position: absolute;
-    left: 30px;
+    left: 20px;
     top: 50%;
     transform: translateY(-50%);
-    width: 200px;
-    height: 200px;
+    width: 150px;
+    height: 150px;
 }
 
 .vinyl {
@@ -155,8 +155,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 60px;
-    height: 60px;
+    width: 45px;
+    height: 45px;
     background: var(--bg);
     border-radius: 50%;
     display: flex;
@@ -212,7 +212,7 @@ body {
     top: 6px;
     left: 4px;
     width: 4px;
-    height: 140px;
+    height: 100px;
     background: linear-gradient(to bottom,
         var(--text-secondary) 0%,
         var(--text-muted) 100%
@@ -222,7 +222,7 @@ body {
 
 .tonearm-head {
     position: absolute;
-    top: 140px;
+    top: 100px;
     left: -4px;
     width: 20px;
     height: 10px;
@@ -249,11 +249,11 @@ body {
 .track-now-playing {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
 }
 
 .track-title {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--text-primary);
     white-space: nowrap;
@@ -262,7 +262,7 @@ body {
 }
 
 .track-artist {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 400;
     color: var(--text-secondary);
 }
@@ -977,27 +977,27 @@ body {
     .turntable { grid-area: turntable; justify-content: flex-start; }
 
     .turntable-base {
-        width: 360px;
-        height: 360px;
+        width: 280px;
+        height: 280px;
     }
 
     .platter {
-        width: 280px;
-        height: 280px;
+        width: 200px;
+        height: 200px;
         left: 30px;
     }
 
     .label {
-        width: 80px;
-        height: 80px;
+        width: 60px;
+        height: 60px;
     }
 
     .tonearm-arm {
-        height: 180px;
+        height: 140px;
     }
 
     .tonearm-head {
-        top: 180px;
+        top: 140px;
     }
     .track-display { grid-area: trackinfo; text-align: left; padding: 0; }
     .progress-section { grid-area: progress; }
@@ -1032,32 +1032,32 @@ body {
     }
 
     .turntable-base {
-        width: 240px;
-        height: 240px;
+        width: 180px;
+        height: 180px;
     }
 
     .platter {
-        width: 160px;
-        height: 160px;
-        left: 25px;
+        width: 130px;
+        height: 130px;
+        left: 18px;
     }
 
     .label {
-        width: 48px;
-        height: 48px;
+        width: 40px;
+        height: 40px;
     }
 
     .tonearm {
-        right: 20px;
-        top: 30px;
+        right: 18px;
+        top: 25px;
     }
 
     .tonearm-arm {
-        height: 110px;
+        height: 90px;
     }
 
     .tonearm-head {
-        top: 110px;
+        top: 90px;
     }
 
     .btn-play {
@@ -1105,28 +1105,34 @@ body {
 .container > *:nth-child(10) { animation-delay: 0.45s; }
 
 /* Mode Mini */
+body:has(.container.mini-mode) {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    min-height: auto;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .container.mini-mode {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
+    position: relative;
     max-width: 320px;
     width: auto;
     padding: 12px;
+    margin: 4px auto;
     background: var(--bg);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
     border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
     border: 1px solid var(--border);
     z-index: 1000;
-    gap: 8px;
-    cursor: grab;
+    gap: 6px;
+    cursor: default;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
-}
-
-.container.mini-mode:active {
-    cursor: grabbing;
 }
 
 .container.mini-mode .header {
@@ -1192,8 +1198,8 @@ body {
     order: 10;
     width: 100%;
     text-align: center;
-    padding: 4px 0 0 0;
-    margin-top: 4px;
+    padding: 2px 0 0 0;
+    margin-top: 2px;
     border-top: 1px solid var(--border);
 }
 
@@ -1255,4 +1261,10 @@ body {
 .container.mini-mode .balance-label,
 .container.mini-mode .balance-slider-container {
     display: none;
+}
+
+/* Desactivar animacions d'entrada al mode mini */
+.container.mini-mode > * {
+    animation: none;
+    opacity: 1;
 }

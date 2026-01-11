@@ -252,9 +252,46 @@ class TurntablePlayer {
     }
 
     // Mode mini
-    toggleMiniMode() {
+    async toggleMiniMode() {
         this.isMiniMode = !this.isMiniMode;
         this.container.classList.toggle('mini-mode', this.isMiniMode);
+
+        // Comunicar amb Tauri si està disponible
+        console.log('Tauri disponible?', !!window.__TAURI__);
+        console.log('Tauri object:', window.__TAURI__);
+
+        if (window.__TAURI__) {
+            try {
+                console.log('Tauri.window:', window.__TAURI__.window);
+                const { getCurrentWindow } = window.__TAURI__.window;
+                const appWindow = getCurrentWindow();
+                console.log('appWindow:', appWindow);
+
+                if (this.isMiniMode) {
+                    // Guardar mida original
+                    const size = await appWindow.outerSize();
+                    this.originalSize = { width: size.width, height: size.height };
+
+                    // Canviar a mode mini
+                    await appWindow.setMinSize({ width: 340, height: 140 });
+                    await appWindow.setSize({ width: 340, height: 140 });
+                    await appWindow.setAlwaysOnTop(true);
+                    await appWindow.setResizable(false);
+                } else {
+                    // Restaurar mida original
+                    await appWindow.setAlwaysOnTop(false);
+                    await appWindow.setResizable(true);
+                    await appWindow.setMinSize({ width: 400, height: 600 });
+                    if (this.originalSize) {
+                        await appWindow.setSize(this.originalSize);
+                    } else {
+                        await appWindow.setSize({ width: 1000, height: 800 });
+                    }
+                }
+            } catch (e) {
+                console.error('Error amb Tauri window:', e);
+            }
+        }
 
         if (!this.isMiniMode) {
             // Restaurar posició original
