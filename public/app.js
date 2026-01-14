@@ -34,6 +34,10 @@ class TurntablePlayer {
         this.urlInput = document.getElementById('urlInput');
         this.btnLoadUrl = document.getElementById('btnLoadUrl');
 
+        // Carátula
+        this.labelArtwork = document.getElementById('labelArtwork');
+        this.vinylLabel = document.getElementById('vinylLabel');
+
         // Tabs
         this.tabs = document.querySelectorAll('.tab');
         this.panels = document.querySelectorAll('.source-panel');
@@ -84,6 +88,25 @@ class TurntablePlayer {
         this.isDragging = false;
         this.dragOffset = { x: 0, y: 0 };
 
+        // Referències per event listeners (per poder fer cleanup)
+        this.boundMouseMove = null;
+        this.boundMouseUp = null;
+
+        // Mode fosc
+        this.btnTheme = document.getElementById('btnTheme');
+
+        // Cerca
+        this.playlistSearch = document.getElementById('playlistSearch');
+        this.searchClear = document.getElementById('searchClear');
+        this.searchQuery = '';
+
+        // Gestió de playlists
+        this.btnPlaylistMenu = document.getElementById('btnPlaylistMenu');
+        this.playlistMenu = document.getElementById('playlistMenu');
+        this.btnSavePlaylist = document.getElementById('btnSavePlaylist');
+        this.btnLoadPlaylist = document.getElementById('btnLoadPlaylist');
+        this.btnClearPlaylist = document.getElementById('btnClearPlaylist');
+
         this.init();
     }
 
@@ -91,6 +114,35 @@ class TurntablePlayer {
         this.setupEventListeners();
         this.audio.volume = 0.8;
         this.updateVolumeSlider();
+        this.initTheme();
+        this.loadPlaylistFromStorage();
+        this.requestNotificationPermission();
+    }
+
+    // Demanar permís per notificacions
+    requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }
+
+    // Mostrar notificació de pista
+    showTrackNotification(track) {
+        if (!('Notification' in window)) return;
+        if (Notification.permission !== 'granted') return;
+
+        const options = {
+            body: track.artist || 'Artista desconegut',
+            icon: track.artwork || undefined,
+            silent: true,
+            tag: 'tocadiscs-track'  // Reemplaça notificacions anteriors
+        };
+
+        try {
+            new Notification(track.title || 'Sense títol', options);
+        } catch (e) {
+            // Notificacions no disponibles
+        }
     }
 
     setupEventListeners() {
@@ -163,6 +215,33 @@ class TurntablePlayer {
         this.btnMiniMode.addEventListener('click', () => this.toggleMiniMode());
         this.setupMiniModeDrag();
 
+        // Mode fosc
+        this.btnTheme.addEventListener('click', () => this.toggleTheme());
+
+        // Cerca
+        this.playlistSearch.addEventListener('input', (e) => {
+            this.searchQuery = e.target.value.toLowerCase();
+            this.renderPlaylist();
+        });
+        this.playlistSearch.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.clearSearch();
+            }
+        });
+        this.searchClear.addEventListener('click', () => this.clearSearch());
+
+        // Gestió de playlists
+        this.btnPlaylistMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.playlistMenu.classList.toggle('open');
+        });
+        document.addEventListener('click', () => {
+            this.playlistMenu.classList.remove('open');
+        });
+        this.btnSavePlaylist.addEventListener('click', () => this.saveNamedPlaylist());
+        this.btnLoadPlaylist.addEventListener('click', () => this.showLoadPlaylistDialog());
+        this.btnClearPlaylist.addEventListener('click', () => this.clearCurrentPlaylist());
+
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'INPUT') return;
@@ -172,16 +251,53 @@ class TurntablePlayer {
                     this.togglePlay();
                     break;
                 case 'ArrowLeft':
+                    e.preventDefault();
                     this.audio.currentTime -= 5;
                     break;
                 case 'ArrowRight':
+                    e.preventDefault();
                     this.audio.currentTime += 5;
                     break;
                 case 'ArrowUp':
+                    e.preventDefault();
                     this.setVolume(Math.min(1, this.audio.volume + 0.1));
                     break;
                 case 'ArrowDown':
+                    e.preventDefault();
                     this.setVolume(Math.max(0, this.audio.volume - 0.1));
+                    break;
+                case 'KeyM':
+                    this.toggleMiniMode();
+                    break;
+                case 'KeyS':
+                    this.toggleShuffle();
+                    break;
+                case 'KeyR':
+                    this.toggleRepeat();
+                    break;
+                case 'KeyD':
+                    this.toggleTheme();
+                    break;
+                case 'KeyN':
+                    this.playNext();
+                    break;
+                case 'KeyP':
+                    this.playPrevious();
+                    break;
+                case 'Digit1':
+                case 'Digit2':
+                case 'Digit3':
+                case 'Digit4':
+                case 'Digit5':
+                case 'Digit6':
+                case 'Digit7':
+                    // Presets d'equalitzador (1-7)
+                    const presetIndex = parseInt(e.code.replace('Digit', '')) - 1;
+                    const presetNames = ['flat', 'rock', 'pop', 'jazz', 'classical', 'bass', 'vocal'];
+                    if (presetNames[presetIndex]) {
+                        this.applyEqPreset(presetNames[presetIndex]);
+                        this.eqPreset.value = presetNames[presetIndex];
+                    }
                     break;
             }
         });
@@ -257,77 +373,137 @@ class TurntablePlayer {
         this.container.classList.toggle('mini-mode', this.isMiniMode);
 
         // Comunicar amb Tauri si està disponible
-        console.log('Tauri disponible?', !!window.__TAURI__);
-        console.log('Tauri object:', window.__TAURI__);
-
+        console.log('__TAURI__ disponible:', !!window.__TAURI__);
         if (window.__TAURI__) {
             try {
-                console.log('Tauri.window:', window.__TAURI__.window);
-                const { getCurrentWindow } = window.__TAURI__.window;
+                console.log('Intentant accedir a window API...');
+                const { getCurrentWindow, LogicalSize } = window.__TAURI__.window;
+                console.log('getCurrentWindow:', getCurrentWindow);
+                console.log('LogicalSize:', LogicalSize);
                 const appWindow = getCurrentWindow();
                 console.log('appWindow:', appWindow);
 
                 if (this.isMiniMode) {
+                    console.log('Entrant en mode mini...');
                     // Guardar mida original
                     const size = await appWindow.outerSize();
                     this.originalSize = { width: size.width, height: size.height };
+                    console.log('Mida original:', this.originalSize);
 
                     // Canviar a mode mini
-                    await appWindow.setMinSize({ width: 340, height: 140 });
-                    await appWindow.setSize({ width: 340, height: 140 });
+                    console.log('setDecorations(false)...');
+                    await appWindow.setDecorations(false);
+                    console.log('setMinSize...');
+                    await appWindow.setMinSize(new LogicalSize(340, 160));
+                    console.log('setSize...');
+                    await appWindow.setSize(new LogicalSize(340, 160));
+                    console.log('setAlwaysOnTop...');
                     await appWindow.setAlwaysOnTop(true);
+                    console.log('setResizable...');
                     await appWindow.setResizable(false);
+                    console.log('Mode mini activat!');
                 } else {
+                    console.log('Sortint de mode mini...');
                     // Restaurar mida original
+                    await appWindow.setDecorations(true);
                     await appWindow.setAlwaysOnTop(false);
                     await appWindow.setResizable(true);
-                    await appWindow.setMinSize({ width: 400, height: 600 });
+                    await appWindow.setMinSize(new LogicalSize(400, 600));
                     if (this.originalSize) {
-                        await appWindow.setSize(this.originalSize);
+                        await appWindow.setSize(new LogicalSize(this.originalSize.width, this.originalSize.height));
                     } else {
-                        await appWindow.setSize({ width: 1000, height: 800 });
+                        await appWindow.setSize(new LogicalSize(1000, 800));
                     }
+                    console.log('Mode normal restaurat!');
                 }
             } catch (e) {
-                console.error('Error amb Tauri window:', e);
+                console.error('Error Tauri:', e);
             }
+        } else {
+            console.log('Tauri no disponible, mode navegador');
         }
 
-        if (!this.isMiniMode) {
-            // Restaurar posició original
-            this.container.style.left = '';
-            this.container.style.top = '';
-            this.container.style.right = '';
-            this.container.style.bottom = '';
-        }
+        // Netejar sempre els estils inline de posició
+        this.container.style.left = '';
+        this.container.style.top = '';
+        this.container.style.right = '';
+        this.container.style.bottom = '';
+        this.container.style.transform = '';
     }
 
     setupMiniModeDrag() {
-        this.container.addEventListener('mousedown', (e) => {
+        // Mousedown al container
+        this.container.addEventListener('mousedown', async (e) => {
             if (!this.isMiniMode) return;
             if (e.target.closest('button, input, select')) return;
 
+            // Si estem a Tauri, usar el drag natiu de la finestra
+            if (window.__TAURI__) {
+                try {
+                    const { getCurrentWindow } = window.__TAURI__.window;
+                    await getCurrentWindow().startDragging();
+                    return; // El drag natiu s'encarrega de tot
+                } catch (err) {
+                    // Si falla, usar el drag del navegador
+                }
+            }
+
+            // Drag del navegador (fallback)
             this.isDragging = true;
+            this.container.classList.add('dragging');
+
+            // Eliminar transform per poder usar left/top absoluts
             const rect = this.container.getBoundingClientRect();
+            this.container.style.transform = 'none';
+            this.container.style.left = `${rect.left}px`;
+            this.container.style.top = `${rect.top}px`;
+
             this.dragOffset.x = e.clientX - rect.left;
             this.dragOffset.y = e.clientY - rect.top;
         });
 
-        document.addEventListener('mousemove', (e) => {
+        // Crear funcions bound per poder fer cleanup
+        this.boundMouseMove = (e) => {
             if (!this.isDragging) return;
 
             const x = e.clientX - this.dragOffset.x;
             const y = e.clientY - this.dragOffset.y;
 
-            this.container.style.left = `${x}px`;
-            this.container.style.top = `${y}px`;
-            this.container.style.right = 'auto';
-            this.container.style.bottom = 'auto';
-        });
+            // Limitar als marges de la pantalla
+            const maxX = window.innerWidth - this.container.offsetWidth;
+            const maxY = window.innerHeight - this.container.offsetHeight;
 
-        document.addEventListener('mouseup', () => {
-            this.isDragging = false;
-        });
+            this.container.style.left = `${Math.max(0, Math.min(x, maxX))}px`;
+            this.container.style.top = `${Math.max(0, Math.min(y, maxY))}px`;
+        };
+
+        this.boundMouseUp = () => {
+            if (this.isDragging) {
+                this.isDragging = false;
+                this.container.classList.remove('dragging');
+
+                // Guardar posició a localStorage
+                const rect = this.container.getBoundingClientRect();
+                localStorage.setItem('tocadiscs-minimode-pos', JSON.stringify({
+                    x: rect.left,
+                    y: rect.top
+                }));
+            }
+        };
+
+        document.addEventListener('mousemove', this.boundMouseMove);
+        document.addEventListener('mouseup', this.boundMouseUp);
+    }
+
+    // Netejar event listeners del mini mode (evitar memory leaks)
+    cleanupMiniModeDrag() {
+        if (this.boundMouseMove) {
+            document.removeEventListener('mousemove', this.boundMouseMove);
+        }
+        if (this.boundMouseUp) {
+            document.removeEventListener('mouseup', this.boundMouseUp);
+        }
+        this.isDragging = false;
     }
 
     // Equalitzador visual
@@ -392,14 +568,71 @@ class TurntablePlayer {
                            file.name.toLowerCase().endsWith('.aac');
             if (isAudio) {
                 const url = URL.createObjectURL(file);
-                this.addToPlaylist({
+                const track = {
                     title: file.name.replace(/\.[^/.]+$/, ''),
                     artist: 'Fitxer local',
                     url: url,
-                    isLocal: true
-                });
+                    isLocal: true,
+                    artwork: null,
+                    file: file  // Guardem referència per extreure artwork
+                };
+
+                // Intentar extreure metadades amb jsmediatags
+                if (window.jsmediatags) {
+                    window.jsmediatags.read(file, {
+                        onSuccess: (tag) => {
+                            if (tag.tags) {
+                                if (tag.tags.title) track.title = tag.tags.title;
+                                if (tag.tags.artist) track.artist = tag.tags.artist;
+
+                                // Extreure artwork
+                                if (tag.tags.picture) {
+                                    const { data, format } = tag.tags.picture;
+                                    const base64 = this.arrayBufferToBase64(data);
+                                    track.artwork = `data:${format};base64,${base64}`;
+                                }
+
+                                this.renderPlaylist();
+
+                                // Si és la pista actual, actualitzar la carátula
+                                if (this.playlist[this.currentIndex] === track) {
+                                    this.updateArtwork(track.artwork);
+                                    this.updateTrackInfo(track);
+                                }
+                            }
+                        },
+                        onError: () => {
+                            // No passa res si no es poden llegir les metadades
+                        }
+                    });
+                }
+
+                this.addToPlaylist(track);
             }
         });
+    }
+
+    // Convertir array de bytes a base64
+    arrayBufferToBase64(buffer) {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+    }
+
+    // Actualitzar carátula del vinil
+    updateArtwork(artworkUrl) {
+        if (artworkUrl) {
+            this.labelArtwork.src = artworkUrl;
+            this.labelArtwork.classList.add('visible');
+            this.vinylLabel.classList.add('has-artwork');
+        } else {
+            this.labelArtwork.src = '';
+            this.labelArtwork.classList.remove('visible');
+            this.vinylLabel.classList.remove('has-artwork');
+        }
     }
 
     // Carregar des d'URL
@@ -437,6 +670,7 @@ class TurntablePlayer {
     addToPlaylist(track) {
         this.playlist.push(track);
         this.renderPlaylist();
+        this.savePlaylistToStorage();
 
         // Si és la primera cançó, carregar-la
         if (this.playlist.length === 1) {
@@ -446,25 +680,45 @@ class TurntablePlayer {
 
     // Renderitzar playlist
     renderPlaylist() {
-        this.playlistItems.innerHTML = this.playlist.map((track, index) => `
+        // Filtrar pistes segons la cerca
+        const filteredTracks = this.playlist.map((track, index) => ({ track, index }))
+            .filter(({ track }) => {
+                if (!this.searchQuery) return true;
+                return track.title.toLowerCase().includes(this.searchQuery) ||
+                       track.artist.toLowerCase().includes(this.searchQuery);
+            });
+
+        this.playlistItems.innerHTML = filteredTracks.map(({ track, index }) => `
             <li class="playlist-item ${index === this.currentIndex ? 'active' : ''}" data-index="${index}">
                 <span class="item-number">${index + 1}</span>
                 <div class="item-info">
-                    <div class="item-title">${track.title}</div>
-                    <div class="item-artist">${track.artist}</div>
+                    <div class="item-title">${this.highlightSearch(this.escapeHtml(track.title))}</div>
+                    <div class="item-artist">${this.highlightSearch(this.escapeHtml(track.artist))}</div>
                 </div>
-                <button class="item-remove" data-index="${index}" title="Eliminar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                    </svg>
-                </button>
+                <div class="item-actions">
+                    <button class="item-move item-move-up" data-index="${index}" title="Pujar" ${index === 0 ? 'disabled' : ''}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                        </svg>
+                    </button>
+                    <button class="item-move item-move-down" data-index="${index}" title="Baixar" ${index === this.playlist.length - 1 ? 'disabled' : ''}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+                        </svg>
+                    </button>
+                    <button class="item-remove" data-index="${index}" title="Eliminar">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
             </li>
         `).join('');
 
         // Event listeners per la playlist
         this.playlistItems.querySelectorAll('.playlist-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                if (!e.target.closest('.item-remove')) {
+                if (!e.target.closest('.item-actions')) {
                     const index = parseInt(item.dataset.index);
                     this.loadTrack(index);
                     this.play();
@@ -479,6 +733,64 @@ class TurntablePlayer {
                 this.removeFromPlaylist(index);
             });
         });
+
+        this.playlistItems.querySelectorAll('.item-move-up').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const index = parseInt(btn.dataset.index);
+                this.moveTrackUp(index);
+            });
+        });
+
+        this.playlistItems.querySelectorAll('.item-move-down').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const index = parseInt(btn.dataset.index);
+                this.moveTrackDown(index);
+            });
+        });
+
+        // Actualitzar comptador
+        const countEl = document.getElementById('playlistCount');
+        if (countEl) {
+            countEl.textContent = `${this.playlist.length} piste${this.playlist.length !== 1 ? 's' : ''}`;
+        }
+    }
+
+    // Moure pista amunt
+    moveTrackUp(index) {
+        if (index <= 0) return;
+
+        // Intercanviar posicions
+        [this.playlist[index], this.playlist[index - 1]] = [this.playlist[index - 1], this.playlist[index]];
+
+        // Ajustar currentIndex si és necessari
+        if (this.currentIndex === index) {
+            this.currentIndex = index - 1;
+        } else if (this.currentIndex === index - 1) {
+            this.currentIndex = index;
+        }
+
+        this.renderPlaylist();
+        this.savePlaylistToStorage();
+    }
+
+    // Moure pista avall
+    moveTrackDown(index) {
+        if (index >= this.playlist.length - 1) return;
+
+        // Intercanviar posicions
+        [this.playlist[index], this.playlist[index + 1]] = [this.playlist[index + 1], this.playlist[index]];
+
+        // Ajustar currentIndex si és necessari
+        if (this.currentIndex === index) {
+            this.currentIndex = index + 1;
+        } else if (this.currentIndex === index + 1) {
+            this.currentIndex = index;
+        }
+
+        this.renderPlaylist();
+        this.savePlaylistToStorage();
     }
 
     // Eliminar de la playlist
@@ -507,17 +819,25 @@ class TurntablePlayer {
         }
 
         this.renderPlaylist();
+        this.savePlaylistToStorage();
     }
 
     // Carregar pista
     loadTrack(index) {
         if (index < 0 || index >= this.playlist.length) return;
 
+        const previousIndex = this.currentIndex;
         this.currentIndex = index;
         const track = this.playlist[index];
         this.audio.src = track.url;
         this.updateTrackInfo(track);
+        this.updateArtwork(track.artwork || null);
         this.renderPlaylist();
+
+        // Mostrar notificació si la pista ha canviat i estem reproduint
+        if (previousIndex !== index && this.isPlaying) {
+            this.showTrackNotification(track);
+        }
 
         // Configurar context d'àudio la primera vegada
         if (!this.isAudioContextSetup) {
@@ -562,7 +882,7 @@ class TurntablePlayer {
                 try {
                     this.setupAudioContext();
                 } catch (e) {
-                    console.warn('Equalitzador no disponible:', e);
+                    // Equalitzador no disponible
                 }
             }
             // Reprendre context d'àudio si està suspès
@@ -570,7 +890,7 @@ class TurntablePlayer {
                 this.audioContext.resume();
             }
         }).catch(err => {
-            console.error('Error reproduint:', err);
+            // Error reproduint
         });
     }
 
@@ -744,6 +1064,236 @@ class TurntablePlayer {
         const secs = Math.floor(seconds % 60);
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
+
+    // Escapar HTML per evitar XSS
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Ressaltar text de cerca
+    highlightSearch(text) {
+        if (!this.searchQuery) return text;
+        const regex = new RegExp(`(${this.escapeRegex(this.searchQuery)})`, 'gi');
+        return text.replace(regex, '<mark>$1</mark>');
+    }
+
+    // Escapar caràcters especials de regex
+    escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // Esborrar cerca
+    clearSearch() {
+        this.searchQuery = '';
+        this.playlistSearch.value = '';
+        this.renderPlaylist();
+    }
+
+    // Guardar playlist amb nom
+    saveNamedPlaylist() {
+        this.playlistMenu.classList.remove('open');
+
+        const name = prompt('Nom de la playlist:');
+        if (!name || !name.trim()) return;
+
+        // Només guardem pistes d'URL (les locals no es poden persistir)
+        const tracksToSave = this.playlist
+            .filter(track => !track.isLocal)
+            .map(track => ({
+                title: track.title,
+                artist: track.artist,
+                url: track.url,
+                isLocal: false
+            }));
+
+        if (tracksToSave.length === 0) {
+            alert('No hi ha pistes d\'URL per guardar. Les pistes locals no es poden persistir.');
+            return;
+        }
+
+        // Obtenir playlists guardades
+        const savedPlaylists = JSON.parse(localStorage.getItem('tocadiscs-saved-playlists') || '{}');
+        savedPlaylists[name.trim()] = {
+            tracks: tracksToSave,
+            savedAt: new Date().toISOString()
+        };
+        localStorage.setItem('tocadiscs-saved-playlists', JSON.stringify(savedPlaylists));
+
+        alert(`Playlist "${name.trim()}" guardada amb ${tracksToSave.length} pistes.`);
+    }
+
+    // Mostrar diàleg per carregar playlist
+    showLoadPlaylistDialog() {
+        this.playlistMenu.classList.remove('open');
+
+        const savedPlaylists = JSON.parse(localStorage.getItem('tocadiscs-saved-playlists') || '{}');
+        const playlistNames = Object.keys(savedPlaylists);
+
+        if (playlistNames.length === 0) {
+            alert('No hi ha playlists guardades.');
+            return;
+        }
+
+        const options = playlistNames.map((name, i) => `${i + 1}. ${name}`).join('\n');
+        const choice = prompt(`Selecciona una playlist (número):\n\n${options}`);
+
+        if (!choice) return;
+
+        const index = parseInt(choice) - 1;
+        if (isNaN(index) || index < 0 || index >= playlistNames.length) {
+            alert('Opció no vàlida.');
+            return;
+        }
+
+        const selectedName = playlistNames[index];
+        const playlist = savedPlaylists[selectedName];
+
+        // Afegir pistes a la llista actual
+        playlist.tracks.forEach(track => {
+            this.playlist.push(track);
+        });
+
+        this.renderPlaylist();
+        this.savePlaylistToStorage();
+
+        if (this.playlist.length > 0 && this.currentIndex === -1) {
+            this.loadTrack(0);
+        }
+
+        alert(`Playlist "${selectedName}" carregada amb ${playlist.tracks.length} pistes.`);
+    }
+
+    // Esborrar llista actual
+    clearCurrentPlaylist() {
+        this.playlistMenu.classList.remove('open');
+
+        if (this.playlist.length === 0) return;
+
+        if (!confirm('Segur que vols esborrar tota la llista?')) return;
+
+        // Alliberar objectURLs
+        this.playlist.forEach(track => {
+            if (track.isLocal && track.url) {
+                URL.revokeObjectURL(track.url);
+            }
+        });
+
+        this.playlist = [];
+        this.currentIndex = -1;
+        this.stop();
+        this.updateTrackInfo(null);
+        this.updateArtwork(null);
+        this.renderPlaylist();
+        this.savePlaylistToStorage();
+    }
+
+    // Inicialitzar tema (detectar preferència guardada o del sistema)
+    initTheme() {
+        const savedTheme = localStorage.getItem('tocadiscs-theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+        // Si no hi ha tema guardat, el CSS s'encarrega de detectar prefers-color-scheme
+    }
+
+    // Alternar entre mode clar i fosc
+    toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        let newTheme;
+        if (currentTheme === 'dark') {
+            newTheme = 'light';
+        } else if (currentTheme === 'light') {
+            newTheme = 'dark';
+        } else {
+            // No hi ha tema explícit, usa l'oposat del sistema
+            newTheme = prefersDark ? 'light' : 'dark';
+        }
+
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('tocadiscs-theme', newTheme);
+    }
+
+    // Guardar playlist a localStorage
+    savePlaylistToStorage() {
+        // Només guardem les pistes d'URL (les locals no es poden persistir)
+        const persistableTracks = this.playlist
+            .filter(track => !track.isLocal)
+            .map(track => ({
+                title: track.title,
+                artist: track.artist,
+                url: track.url,
+                isLocal: false
+            }));
+
+        const state = {
+            tracks: persistableTracks,
+            currentIndex: this.currentIndex,
+            volume: this.audio.volume,
+            repeatMode: this.repeatMode,
+            isShuffle: this.isShuffle
+        };
+
+        localStorage.setItem('tocadiscs-playlist', JSON.stringify(state));
+    }
+
+    // Carregar playlist des de localStorage
+    loadPlaylistFromStorage() {
+        const saved = localStorage.getItem('tocadiscs-playlist');
+        if (!saved) return;
+
+        try {
+            const state = JSON.parse(saved);
+
+            // Restaurar pistes
+            if (state.tracks && state.tracks.length > 0) {
+                state.tracks.forEach(track => {
+                    this.playlist.push(track);
+                });
+                this.renderPlaylist();
+
+                // Restaurar índex si és vàlid
+                if (state.currentIndex >= 0 && state.currentIndex < this.playlist.length) {
+                    this.loadTrack(state.currentIndex);
+                } else if (this.playlist.length > 0) {
+                    this.loadTrack(0);
+                }
+            }
+
+            // Restaurar volum
+            if (typeof state.volume === 'number') {
+                this.setVolume(state.volume);
+            }
+
+            // Restaurar repeat mode
+            if (typeof state.repeatMode === 'number') {
+                this.repeatMode = state.repeatMode;
+                this.btnRepeat.classList.toggle('active', this.repeatMode > 0);
+                if (this.repeatMode === 2) {
+                    this.btnRepeat.innerHTML = `
+                        <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+                        <span style="position: absolute; font-size: 8px; font-weight: bold; bottom: 8px; right: 8px;">1</span>
+                    `;
+                }
+            }
+
+            // Restaurar shuffle
+            if (state.isShuffle) {
+                this.isShuffle = true;
+                this.btnShuffle.classList.add('active');
+            }
+        } catch (e) {
+            // Error parsejant, ignorar
+        }
+    }
+
+    // Esborrar playlist guardada
+    clearSavedPlaylist() {
+        localStorage.removeItem('tocadiscs-playlist');
+    }
 }
 
 // Inicialitzar el reproductor quan el DOM estigui llest
@@ -754,12 +1304,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // Registrar Service Worker per PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then((registration) => {
-                console.log('Service Worker registrat:', registration.scope);
-            })
-            .catch((error) => {
-                console.log('Error registrant Service Worker:', error);
-            });
+        navigator.serviceWorker.register('./sw.js').catch(() => {
+            // Service Worker no disponible o error de registre
+        });
     });
 }

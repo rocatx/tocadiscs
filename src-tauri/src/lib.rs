@@ -16,6 +16,8 @@ fn enter_mini_mode(app: AppHandle, state: tauri::State<OriginalSize>) -> Result<
     window.set_size(Size::Logical(LogicalSize::new(340.0, 140.0))).map_err(|e| e.to_string())?;
     window.set_always_on_top(true).map_err(|e| e.to_string())?;
     window.set_resizable(false).map_err(|e| e.to_string())?;
+    // Finestra sense decoracions per poder moure-la lliurement
+    window.set_decorations(false).map_err(|e| e.to_string())?;
 
     Ok(())
 }
@@ -25,6 +27,8 @@ fn exit_mini_mode(app: AppHandle, state: tauri::State<OriginalSize>) -> Result<(
     let window: WebviewWindow = app.get_webview_window("main").ok_or("No main window")?;
     let original = state.0.lock().unwrap();
 
+    // Restaurar decoracions de la finestra
+    window.set_decorations(true).map_err(|e| e.to_string())?;
     window.set_always_on_top(false).map_err(|e| e.to_string())?;
     window.set_resizable(true).map_err(|e| e.to_string())?;
     window.set_min_size(Some(Size::Logical(LogicalSize::new(400.0, 600.0)))).map_err(|e| e.to_string())?;

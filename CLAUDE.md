@@ -4,74 +4,72 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Tocadiscs is a browser-based music player with a vinyl turntable visual aesthetic. Built with vanilla HTML5, CSS3, and JavaScript (no frameworks or build tools). Supports PWA installation for offline use.
+Tocadisc is a music player with a vinyl turntable visual aesthetic. Built with Tauri (Rust backend) and vanilla HTML5, CSS3, and JavaScript frontend (no frameworks). Produces lightweight native apps (~3MB DMG).
 
-## Running the Application
+## Commands
 
-### Browser
-Open `index.html` directly in a browser. No server required for basic functionality.
-
-**Note:** The equalizer visualization only works with local files due to CORS restrictions with the Web Audio API.
-
-### Desktop App (Electron)
 ```bash
-# Instal·lar dependències
+# Install dependencies
 npm install
 
-# Executar en mode desenvolupament
-npm start
+# Development mode (hot reload)
+npm run dev
 
-# Construir per Mac
-npm run build:mac
-
-# Construir per Windows
-npm run build:win
-
-# Construir per ambdues plataformes
+# Build for current platform
 npm run build
+
+# Build for specific targets
+npm run build:mac      # Mac ARM (aarch64-apple-darwin)
+npm run build:win      # Windows (x86_64-pc-windows-msvc)
 ```
 
-Els executables es generaran a la carpeta `dist/`.
+Build outputs are in `src-tauri/target/release/bundle/`.
 
 ## Architecture
 
-### Files
-- `index.html` - UI structure with responsive grid layout (single column mobile, two-column desktop)
-- `styles.css` - Styling with CSS custom properties for theming (`:root` variables)
-- `app.js` - Single `TurntablePlayer` class handling all functionality
-- `sw.js` - Service worker for PWA offline caching (cache-first strategy)
-- `manifest.json` - PWA manifest for installability
-- `main.js` - Electron main process for desktop app
-- `package.json` - Dependencies and build scripts for Electron
+### Project Structure
+- `public/` - Frontend web files (served by Tauri)
+  - `index.html` - UI structure with responsive grid layout
+  - `styles.css` - Styling with CSS custom properties (`:root` variables)
+  - `app.js` - Single `TurntablePlayer` class handling all functionality
+- `src-tauri/` - Rust backend
+  - `src/lib.rs` - Tauri commands for window manipulation
+  - `tauri.conf.json` - App configuration, window settings, bundle targets
+  - `capabilities/default.json` - Tauri permissions for window API
 
-### TurntablePlayer Class (app.js)
-The player maintains state for:
+### TurntablePlayer Class (public/app.js)
+State management:
 - `playlist[]` - Array of track objects `{title, artist, url, isLocal}`
 - `currentIndex` - Currently playing track
 - `repeatMode` - 0: off, 1: all, 2: one
-- `isShuffle` - Shuffle mode toggle
-- `isMiniMode` - Compact draggable player mode
+- `isShuffle`, `isMiniMode` - Mode toggles
 
 Key methods:
-- `handleFiles()` - Processes audio files (supports MP3, FLAC, WAV, OGG, M4A, AAC)
-- `setupAudioContext()` - Initializes Web Audio API for equalizer and balance
-- `updatePlayState()` - Syncs UI animations (vinyl spin, tonearm position) with playback
-- `toggleMiniMode()` - Switches to compact floating player
+- `handleFiles()` - Processes audio files (MP3, FLAC, WAV, OGG, M4A, AAC)
+- `setupAudioContext()` - Initializes Web Audio API for equalizer/balance
+- `updatePlayState()` - Syncs UI animations with playback
+- `toggleMiniMode()` - Switches to compact player, calls Tauri window API
+
+### Tauri Commands (src-tauri/src/lib.rs)
+- `enter_mini_mode` - Resizes window to 340x140, sets always-on-top
+- `exit_mini_mode` - Restores original window size
 
 ### Web Audio API Chain
-When playing local files, audio is routed through:
 `MediaElementSource → BiquadFilters (7-band EQ) → StereoPanner → Analyser → Destination`
 
 ### CSS Animations
-- `.vinyl.playing` - Triggers vinyl rotation (1.8s per revolution)
-- `.tonearm.playing` - Moves tonearm onto record (26deg rotation)
-- `.container.mini-mode` - Compact floating player with drag support and track title display
-- `.equalizer-section.show-sliders` - Horizontal layout with preset selector and EQ sliders aligned
+- `.vinyl.playing` - Vinyl rotation (1.8s/revolution)
+- `.tonearm.playing` - Tonearm movement (26deg)
+- `.container.mini-mode` - Compact floating player
 
 ### Keyboard Shortcuts
 - Space: Play/Pause
 - Arrow Left/Right: Seek ±5 seconds
 - Arrow Up/Down: Volume ±10%
+
+## CI/CD
+
+GitHub Actions workflow (`.github/workflows/build.yml`) builds for Mac ARM, Mac Intel, and Windows on every push. Tagged releases (v*) automatically create GitHub Releases with downloadable binaries.
 
 ## Language
 
