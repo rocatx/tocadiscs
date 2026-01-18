@@ -116,7 +116,6 @@ class TurntablePlayer {
         this.updateVolumeSlider();
         this.initTheme();
         this.loadPlaylistFromStorage();
-        this.requestNotificationPermission();
     }
 
     // Demanar permís per notificacions
@@ -377,7 +376,7 @@ class TurntablePlayer {
         if (window.__TAURI__) {
             try {
                 console.log('Intentant accedir a window API...');
-                const { getCurrentWindow, LogicalSize } = window.__TAURI__.window;
+                const { getCurrentWindow, LogicalSize, LogicalPosition } = window.__TAURI__.window;
                 console.log('getCurrentWindow:', getCurrentWindow);
                 console.log('LogicalSize:', LogicalSize);
                 const appWindow = getCurrentWindow();
@@ -385,10 +384,20 @@ class TurntablePlayer {
 
                 if (this.isMiniMode) {
                     console.log('Entrant en mode mini...');
-                    // Guardar mida original
-                    const size = await appWindow.outerSize();
-                    this.originalSize = { width: size.width, height: size.height };
-                    console.log('Mida original:', this.originalSize);
+                    // Guardar mida original i posició
+                    const size = await appWindow.innerSize();
+                    const position = await appWindow.outerPosition();
+                    const scaleFactor = await appWindow.scaleFactor();
+                    // Convertir a coordenades lògiques
+                    this.originalSize = {
+                        width: size.width / scaleFactor,
+                        height: size.height / scaleFactor
+                    };
+                    this.originalPosition = {
+                        x: position.x / scaleFactor,
+                        y: position.y / scaleFactor
+                    };
+                    console.log('Mida original:', this.originalSize, 'Posició:', this.originalPosition);
 
                     // Canviar a mode mini
                     console.log('setDecorations(false)...');
@@ -413,6 +422,10 @@ class TurntablePlayer {
                         await appWindow.setSize(new LogicalSize(this.originalSize.width, this.originalSize.height));
                     } else {
                         await appWindow.setSize(new LogicalSize(1000, 800));
+                    }
+                    // Restaurar posició original
+                    if (this.originalPosition) {
+                        await appWindow.setPosition(new LogicalPosition(this.originalPosition.x, this.originalPosition.y));
                     }
                     console.log('Mode normal restaurat!');
                 }
@@ -557,7 +570,31 @@ class TurntablePlayer {
     }
 
     handleFiles(files) {
-        Array.from(files).forEach(file => {
+        const fileArray = Array.from(files);
+
+        // Buscar imatge de carpeta (cover.jpg, folder.jpg, etc.)
+        const imageNames = ['cover', 'folder', 'artwork', 'front', 'album'];
+        const imageExts = ['.jpg', '.jpeg', '.png', '.webp'];
+        let folderArtwork = null;
+
+        const imageFile = fileArray.find(file => {
+            const name = file.name.toLowerCase();
+            const isImage = file.type.startsWith('image/') || imageExts.some(ext => name.endsWith(ext));
+            if (!isImage) return false;
+            // Prioritzar noms comuns de covers
+            const baseName = name.replace(/\.[^/.]+$/, '');
+            return imageNames.includes(baseName);
+        }) || fileArray.find(file => {
+            // Si no trobem un nom comú, agafar qualsevol imatge
+            const name = file.name.toLowerCase();
+            return file.type.startsWith('image/') || imageExts.some(ext => name.endsWith(ext));
+        });
+
+        if (imageFile) {
+            folderArtwork = URL.createObjectURL(imageFile);
+        }
+
+        fileArray.forEach(file => {
             // Acceptar àudio/* i també FLAC (alguns navegadors no detecten el tipus MIME correctament)
             const isAudio = file.type.startsWith('audio/') ||
                            file.name.toLowerCase().endsWith('.flac') ||
@@ -573,7 +610,7 @@ class TurntablePlayer {
                     artist: 'Fitxer local',
                     url: url,
                     isLocal: true,
-                    artwork: null,
+                    artwork: folderArtwork,  // Usar imatge de carpeta si existeix
                     file: file  // Guardem referència per extreure artwork
                 };
 
@@ -586,10 +623,19 @@ class TurntablePlayer {
                                 if (tag.tags.artist) track.artist = tag.tags.artist;
 
                                 // Extreure artwork
-                                if (tag.tags.picture) {
+                                if (tag.tags.picture && tag.tags.picture.data) {
                                     const { data, format } = tag.tags.picture;
                                     const base64 = this.arrayBufferToBase64(data);
-                                    track.artwork = `data:${format};base64,${base64}`;
+                                    // Normalitzar el format MIME
+                                    let mimeType = format || 'jpeg';
+                                    if (!mimeType.startsWith('image/')) {
+                                        mimeType = 'image/' + mimeType;
+                                    }
+                                    // Corregir 'image/jpg' a 'image/jpeg' (MIME correcte)
+                                    if (mimeType === 'image/jpg') {
+                                        mimeType = 'image/jpeg';
+                                    }
+                                    track.artwork = `data:${mimeType};base64,${base64}`;
                                 }
 
                                 this.renderPlaylist();

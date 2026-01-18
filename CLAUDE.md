@@ -39,20 +39,23 @@ Build outputs are in `src-tauri/target/release/bundle/`.
 
 ### TurntablePlayer Class (public/app.js)
 State management:
-- `playlist[]` - Array of track objects `{title, artist, url, isLocal}`
+- `playlist[]` - Array of track objects `{title, artist, url, isLocal, artwork, file}`
 - `currentIndex` - Currently playing track
 - `repeatMode` - 0: off, 1: all, 2: one
 - `isShuffle`, `isMiniMode` - Mode toggles
 
 Key methods:
-- `handleFiles()` - Processes audio files (MP3, FLAC, WAV, OGG, M4A, AAC)
+- `handleFiles()` - Processes audio files (MP3, FLAC, WAV, OGG, M4A, AAC), extracts metadata with jsmediatags, uses folder images as fallback artwork
 - `setupAudioContext()` - Initializes Web Audio API for equalizer/balance
 - `updatePlayState()` - Syncs UI animations with playback
-- `toggleMiniMode()` - Switches to compact player, calls Tauri window API
+- `toggleMiniMode()` - Switches to compact player, saves/restores window size and position using Tauri window API with scaleFactor conversion
 
 ### Tauri Commands (src-tauri/src/lib.rs)
 - `enter_mini_mode` - Resizes window to 340x140, sets always-on-top
 - `exit_mini_mode` - Restores original window size
+
+### External Libraries
+- `jsmediatags` (CDN) - Extracts ID3 tags and artwork from audio files
 
 ### Web Audio API Chain
 `MediaElementSource → BiquadFilters (7-band EQ) → StereoPanner → Analyser → Destination`

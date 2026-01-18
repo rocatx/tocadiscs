@@ -795,8 +795,9 @@ body {
     justify-content: center;
     align-items: flex-end;
     gap: 6px;
-    height: 24px;
+    height: 44px;
     padding: 4px 0;
+    overflow: hidden;
 }
 
 .eq-bar {
