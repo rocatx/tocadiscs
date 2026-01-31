@@ -24,6 +24,7 @@
       "Bash(source \"$HOME/.cargo/env\")",
       "Bash(export PATH=\"$HOME/.cargo/bin:$PATH\")",
       "Bash(PATH=\"$HOME/.cargo/bin:$PATH\" npm run build:*)",
+<<<<<<< Updated upstream
       "Bash(git push:*)",
       "Bash(gh auth refresh:*)",
       "Bash(gh auth:*)",
@@ -40,6 +41,9 @@
       "Bash(npm run dev:*)",
       "Bash(pkill:*)",
       "Bash(npm run build:mac:*)"
+=======
+      "Bash(log show:*)"
+>>>>>>> Stashed changes
     ]
   }
 }
