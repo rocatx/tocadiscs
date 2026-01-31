@@ -49,6 +49,7 @@ class TurntablePlayer {
         this.isShuffle = false;
         this.repeatMode = 0; // 0: off, 1: all, 2: one
         this.previousVolume = 0.8;
+        this.currentFolderArtworkUrl = null; // Per memory leak prevention
 
         // Web Audio API per l'equalitzador
         this.audioContext = null;
@@ -116,6 +117,7 @@ class TurntablePlayer {
         this.updateVolumeSlider();
         this.initTheme();
         this.loadPlaylistFromStorage();
+        this.loadEqPreference();
     }
 
     // Demanar permís per notificacions
@@ -204,11 +206,14 @@ class TurntablePlayer {
         });
 
         // Equalitzador
-        this.eqToggle.addEventListener('click', () => this.toggleEqView());
+        this.eqToggle.addEventListener('click', () => this.toggleEqCollapse());
         this.eqPreset.addEventListener('change', (e) => this.applyEqPreset(e.target.value));
         this.eqSliders.forEach((slider, index) => {
             slider.addEventListener('input', (e) => this.setEqBand(index, parseFloat(e.target.value)));
         });
+
+        // Inicialitzar EQ expandit per defecte
+        this.eqSection.classList.add('expanded');
 
         // Mode mini
         this.btnMiniMode.addEventListener('click', () => this.toggleMiniMode());
@@ -343,9 +348,21 @@ class TurntablePlayer {
         }
     }
 
-    // Alternar vista de l'equalitzador
-    toggleEqView() {
-        this.eqSection.classList.toggle('show-sliders');
+    // Alternar collapse/expand de l'equalitzador
+    toggleEqCollapse() {
+        this.eqSection.classList.toggle('expanded');
+
+        // Guardar preferència
+        const isExpanded = this.eqSection.classList.contains('expanded');
+        localStorage.setItem('tocadiscs-eq-expanded', isExpanded);
+    }
+
+    // Caregar preferència d'EQ al iniciar
+    loadEqPreference() {
+        const isExpanded = localStorage.getItem('tocadiscs-eq-expanded');
+        if (isExpanded === 'false') {
+            this.eqSection.classList.remove('expanded');
+        }
     }
 
     // Aplicar preset de l'equalitzador
@@ -370,6 +387,11 @@ class TurntablePlayer {
     async toggleMiniMode() {
         this.isMiniMode = !this.isMiniMode;
         this.container.classList.toggle('mini-mode', this.isMiniMode);
+
+        // Collapsar EQ en mode mini
+        if (this.isMiniMode) {
+            this.eqSection.classList.remove('expanded');
+        }
 
         // Comunicar amb Tauri si està disponible
         console.log('__TAURI__ disponible:', !!window.__TAURI__);
@@ -544,7 +566,8 @@ class TurntablePlayer {
                     sum += dataArray[i * step + j];
                 }
                 const average = sum / step;
-                const height = Math.max(4, (average / 255) * 40);
+                // L'altura màxima és 150px per ocupar tot l'espai
+                const height = Math.max(4, (average / 255) * 150);
                 bar.style.height = `${height}px`;
             });
 
@@ -591,7 +614,12 @@ class TurntablePlayer {
         });
 
         if (imageFile) {
+            // Revocar URL anterior per evitar memory leak
+            if (this.currentFolderArtworkUrl) {
+                URL.revokeObjectURL(this.currentFolderArtworkUrl);
+            }
             folderArtwork = URL.createObjectURL(imageFile);
+            this.currentFolderArtworkUrl = folderArtwork;
         }
 
         fileArray.forEach(file => {
@@ -1118,11 +1146,17 @@ class TurntablePlayer {
         return div.innerHTML;
     }
 
-    // Ressaltar text de cerca
+    // Ressaltar text de cerca (sense XSS)
     highlightSearch(text) {
         if (!this.searchQuery) return text;
         const regex = new RegExp(`(${this.escapeRegex(this.searchQuery)})`, 'gi');
-        return text.replace(regex, '<mark>$1</mark>');
+        const parts = text.split(regex);
+        return parts.map((part, i) => {
+            if (i % 2 === 1) {
+                return `<mark>${this.escapeHtml(part)}</mark>`;
+            }
+            return this.escapeHtml(part);
+        }).join('');
     }
 
     // Escapar caràcters especials de regex
@@ -1144,30 +1178,41 @@ class TurntablePlayer {
         const name = prompt('Nom de la playlist:');
         if (!name || !name.trim()) return;
 
-        // Només guardem pistes d'URL (les locals no es poden persistir)
-        const tracksToSave = this.playlist
-            .filter(track => !track.isLocal)
-            .map(track => ({
-                title: track.title,
-                artist: track.artist,
-                url: track.url,
-                isLocal: false
-            }));
-
-        if (tracksToSave.length === 0) {
-            alert('No hi ha pistes d\'URL per guardar. Les pistes locals no es poden persistir.');
+        if (this.playlist.length === 0) {
+            alert('La playlist està buida. Afegeix pistes primer.');
             return;
         }
 
+        // Guardem TOTES les pistes (locals + URL)
+        const tracksToSave = this.playlist.map(track => ({
+            title: track.title,
+            artist: track.artist,
+            url: track.url,
+            isLocal: track.isLocal,
+            artwork: track.artwork
+        }));
+
         // Obtenir playlists guardades
         const savedPlaylists = JSON.parse(localStorage.getItem('tocadiscs-saved-playlists') || '{}');
+
+        if (savedPlaylists[name.trim()]) {
+            const overwrite = confirm(`La playlist "${name.trim()}" ja existeix. Vols sobrescriure-la?`);
+            if (!overwrite) return;
+        }
+
         savedPlaylists[name.trim()] = {
             tracks: tracksToSave,
             savedAt: new Date().toISOString()
         };
         localStorage.setItem('tocadiscs-saved-playlists', JSON.stringify(savedPlaylists));
 
-        alert(`Playlist "${name.trim()}" guardada amb ${tracksToSave.length} pistes.`);
+        const localCount = tracksToSave.filter(t => t.isLocal).length;
+        const urlCount = tracksToSave.filter(t => !t.isLocal).length;
+        let message = `Playlist "${name.trim()}" guardada amb ${tracksToSave.length} pistes.`;
+        if (localCount > 0) {
+            message += `\n\n📌 Nota: ${localCount} pista${localCount > 1 ? 's' : ''} local${localCount > 1 ? 's' : ''} (es carregarà la metadada, no els fitxers)`;
+        }
+        alert(message);
     }
 
     // Mostrar diàleg per carregar playlist
@@ -1194,10 +1239,15 @@ class TurntablePlayer {
         }
 
         const selectedName = playlistNames[index];
-        const playlist = savedPlaylists[selectedName];
+        const playlistData = savedPlaylists[selectedName];
 
         // Afegir pistes a la llista actual
-        playlist.tracks.forEach(track => {
+        const localTracks = [];
+        playlistData.tracks.forEach(track => {
+            if (track.isLocal) {
+                // Les pistes locals només es carreguen com a metadada
+                localTracks.push(track);
+            }
             this.playlist.push(track);
         });
 
@@ -1208,16 +1258,24 @@ class TurntablePlayer {
             this.loadTrack(0);
         }
 
-        alert(`Playlist "${selectedName}" carregada amb ${playlist.tracks.length} pistes.`);
+        let message = `Playlist "${selectedName}" carregada amb ${playlistData.tracks.length} pistes.`;
+        if (localTracks.length > 0) {
+            message += `\n\n⚠️ ${localTracks.length} pista${localTracks.length > 1 ? 's' : ''} local${localTracks.length > 1 ? 's' : ''} (sense arxius de so)\nCarrega els fitxers originals per reproduir-les.`;
+        }
+        alert(message);
     }
 
     // Esborrar llista actual
     clearCurrentPlaylist() {
         this.playlistMenu.classList.remove('open');
 
-        if (this.playlist.length === 0) return;
+        if (this.playlist.length === 0) {
+            alert('La llista ja està buida');
+            return;
+        }
 
-        if (!confirm('Segur que vols esborrar tota la llista?')) return;
+        const confirmed = confirm(`Segur que vols esborrar tota la llista? (${this.playlist.length} pistes)`);
+        if (!confirmed) return;
 
         // Alliberar objectURLs
         this.playlist.forEach(track => {
@@ -1233,6 +1291,8 @@ class TurntablePlayer {
         this.updateArtwork(null);
         this.renderPlaylist();
         this.savePlaylistToStorage();
+
+        alert('Llista esborrada correctament');
     }
 
     // Inicialitzar tema (detectar preferència guardada o del sistema)

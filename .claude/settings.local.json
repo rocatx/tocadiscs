@@ -23,7 +23,23 @@
       "Bash(npx tauri:*)",
       "Bash(source \"$HOME/.cargo/env\")",
       "Bash(export PATH=\"$HOME/.cargo/bin:$PATH\")",
-      "Bash(PATH=\"$HOME/.cargo/bin:$PATH\" npm run build:*)"
+      "Bash(PATH=\"$HOME/.cargo/bin:$PATH\" npm run build:*)",
+      "Bash(git push:*)",
+      "Bash(gh auth refresh:*)",
+      "Bash(gh auth:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(git -C /Users/xrocat/Desktop/reprod status)",
+      "Bash(git -C /Users/xrocat/Desktop/reprod ls-files)",
+      "Bash(git rm:*)",
+      "Bash(gh release:*)",
+      "Bash(git -C /Users/xrocat/Desktop/Tocadisc log --oneline -20)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(git -C /Users/xrocat/Desktop/Tocadisc log --oneline)",
+      "Bash(npm run dev:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run build:mac:*)"
     ]
   }
 }

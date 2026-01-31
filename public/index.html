@@ -27,11 +27,11 @@
         <header class="header">
             <span class="brand">TOCADISC</span>
             <div class="header-actions">
-                <button class="btn btn-icon" id="btnTheme" title="Canviar tema">
+                <button class="btn btn-icon" id="btnTheme" title="Canviar tema" aria-label="Alternar tema clar/fosc">
                     <svg class="icon-moon" viewBox="0 0 24 24" width="16" height="16"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" fill="currentColor"/></svg>
                     <svg class="icon-sun" viewBox="0 0 24 24" width="16" height="16"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z" fill="currentColor"/></svg>
                 </button>
-                <button class="btn btn-icon" id="btnMiniMode" title="Mode mini">
+                <button class="btn btn-icon" id="btnMiniMode" title="Mode mini" aria-label="Alternar mode mini flotant">
                     <svg class="icon-minimize" viewBox="0 0 24 24" width="16" height="16"><path d="M19 13H5v-2h14v2z" fill="currentColor"/></svg>
                     <svg class="icon-maximize" viewBox="0 0 24 24" width="16" height="16"><path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6v-2z" fill="currentColor"/></svg>
                 </button>
@@ -81,39 +81,39 @@
 
         <!-- Controls -->
         <div class="controls">
-            <button class="btn btn-control" id="btnShuffle" title="Aleatori">
+            <button class="btn btn-control" id="btnShuffle" title="Aleatori" aria-label="Aleatori">
                 <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
             </button>
-            <button class="btn btn-control" id="btnPrev" title="Anterior">
+            <button class="btn btn-control" id="btnPrev" title="Anterior" aria-label="Pista anterior">
                 <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
             </button>
-            <button class="btn btn-play" id="btnPlay" title="Reproduir">
+            <button class="btn btn-play" id="btnPlay" title="Reproduir" aria-label="Reproduir/Pausar">
                 <svg class="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 <svg class="icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             </button>
-            <button class="btn btn-control" id="btnStop" title="Aturar">
+            <button class="btn btn-control" id="btnStop" title="Aturar" aria-label="Aturar reproducció">
                 <svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
             </button>
-            <button class="btn btn-control" id="btnNext" title="Seguent">
+            <button class="btn btn-control" id="btnNext" title="Seguent" aria-label="Pista següent">
                 <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
             </button>
-            <button class="btn btn-control" id="btnRepeat" title="Repetir">
+            <button class="btn btn-control" id="btnRepeat" title="Repetir" aria-label="Mode repetició">
                 <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
             </button>
         </div>
 
         <!-- Volume & Balance -->
         <div class="volume-section">
-            <button class="btn btn-icon" id="btnMute" title="Silenciar">
+            <button class="btn btn-icon" id="btnMute" title="Silenciar" aria-label="Silenciar/Restaurar volum">
                 <svg class="icon-volume" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
                 <svg class="icon-mute" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
             </button>
             <div class="volume-slider-container">
-                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80" aria-label="Volum">
             </div>
             <span class="balance-label">L</span>
             <div class="balance-slider-container">
-                <input type="range" class="balance-slider" id="balanceSlider" min="-100" max="100" value="0" title="Balanç">
+                <input type="range" class="balance-slider" id="balanceSlider" min="-100" max="100" value="0" aria-label="Balanç esquerra-dreta">
             </div>
             <span class="balance-label">R</span>
         </div>
@@ -121,59 +121,78 @@
         <!-- Equalizer -->
         <div class="equalizer-section" id="equalizerSection">
             <div class="eq-header">
-                <select class="eq-preset" id="eqPreset">
-                    <option value="flat">Pla</option>
-                    <option value="rock">Rock</option>
-                    <option value="pop">Pop</option>
-                    <option value="jazz">Jazz</option>
-                    <option value="classical">Clàssic</option>
-                    <option value="bass">Baix+</option>
-                    <option value="vocal">Veu</option>
-                </select>
-                <button class="btn btn-icon eq-toggle" id="eqToggle" title="Alternar visualització/controls">
-                    <svg class="icon-sliders" viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
-                    <svg class="icon-wave" viewBox="0 0 24 24"><path d="M7.5 5.6L10 7 8.6 3.5 7.5 5.6zm9 0L15 3.5 13.6 7l2.4-1.4zm-4.5 6.9V3h-1v9.5l-3.5 3.5 1 1L12 14l3.5 3.5 1-1-3.5-3.5z"/></svg>
-                </button>
-            </div>
-            <div class="eq-sliders" id="eqSliders">
-                <div class="eq-band" data-freq="60">
-                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                    <span class="eq-label">60</span>
-                </div>
-                <div class="eq-band" data-freq="150">
-                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                    <span class="eq-label">150</span>
-                </div>
-                <div class="eq-band" data-freq="400">
-                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                    <span class="eq-label">400</span>
-                </div>
-                <div class="eq-band" data-freq="1000">
-                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                    <span class="eq-label">1k</span>
-                </div>
-                <div class="eq-band" data-freq="2400">
-                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                    <span class="eq-label">2.4k</span>
-                </div>
-                <div class="eq-band" data-freq="6000">
-                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                    <span class="eq-label">6k</span>
-                </div>
-                <div class="eq-band" data-freq="15000">
-                    <input type="range" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                    <span class="eq-label">15k</span>
+                <span class="eq-title">
+                    EQUALITZADOR
+                    <select class="eq-preset" id="eqPreset">
+                        <option value="flat">Pla</option>
+                        <option value="rock">Rock</option>
+                        <option value="pop">Pop</option>
+                        <option value="jazz">Jazz</option>
+                        <option value="classical">Clàssic</option>
+                        <option value="bass">Baix+</option>
+                        <option value="vocal">Veu</option>
+                    </select>
+                </span>
+                <div class="eq-controls">
+                    <button class="btn btn-icon eq-toggle" id="eqToggle" title="Mostrar/amagar controls">
+                        <svg class="icon-chevron-down" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                        <svg class="icon-chevron-up" viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/></svg>
+                    </button>
                 </div>
             </div>
-            <div class="equalizer" id="equalizer">
-                <div class="eq-bar" data-index="0"></div>
-                <div class="eq-bar" data-index="1"></div>
-                <div class="eq-bar" data-index="2"></div>
-                <div class="eq-bar" data-index="3"></div>
-                <div class="eq-bar" data-index="4"></div>
-                <div class="eq-bar" data-index="5"></div>
-                <div class="eq-bar" data-index="6"></div>
-                <div class="eq-bar" data-index="7"></div>
+
+            <div class="eq-content" id="eqContent">
+                <!-- Visualitzador -->
+                <div class="equalizer" id="equalizer">
+                    <div class="eq-bar" data-index="0"></div>
+                    <div class="eq-bar" data-index="1"></div>
+                    <div class="eq-bar" data-index="2"></div>
+                    <div class="eq-bar" data-index="3"></div>
+                    <div class="eq-bar" data-index="4"></div>
+                    <div class="eq-bar" data-index="5"></div>
+                    <div class="eq-bar" data-index="6"></div>
+                    <div class="eq-bar" data-index="7"></div>
+                    <div class="eq-bar" data-index="8"></div>
+                    <div class="eq-bar" data-index="9"></div>
+                    <div class="eq-bar" data-index="10"></div>
+                    <div class="eq-bar" data-index="11"></div>
+                    <div class="eq-bar" data-index="12"></div>
+                    <div class="eq-bar" data-index="13"></div>
+                    <div class="eq-bar" data-index="14"></div>
+                    <div class="eq-bar" data-index="15"></div>
+                </div>
+
+                <!-- Controls EQ -->
+                <div class="eq-sliders" id="eqSliders">
+                    <div class="eq-band" data-freq="60">
+                        <input type="range" class="eq-slider" min="-12" max="12" value="0">
+                        <span class="eq-label">60</span>
+                    </div>
+                    <div class="eq-band" data-freq="150">
+                        <input type="range" class="eq-slider" min="-12" max="12" value="0">
+                        <span class="eq-label">150</span>
+                    </div>
+                    <div class="eq-band" data-freq="400">
+                        <input type="range" class="eq-slider" min="-12" max="12" value="0">
+                        <span class="eq-label">400</span>
+                    </div>
+                    <div class="eq-band" data-freq="1000">
+                        <input type="range" class="eq-slider" min="-12" max="12" value="0">
+                        <span class="eq-label">1k</span>
+                    </div>
+                    <div class="eq-band" data-freq="2400">
+                        <input type="range" class="eq-slider" min="-12" max="12" value="0">
+                        <span class="eq-label">2.4k</span>
+                    </div>
+                    <div class="eq-band" data-freq="6000">
+                        <input type="range" class="eq-slider" min="-12" max="12" value="0">
+                        <span class="eq-label">6k</span>
+                    </div>
+                    <div class="eq-band" data-freq="15000">
+                        <input type="range" class="eq-slider" min="-12" max="12" value="0">
+                        <span class="eq-label">15k</span>
+                    </div>
+                </div>
             </div>
         </div>
 
