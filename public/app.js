@@ -395,13 +395,14 @@ class TurntablePlayer {
 
     // Mode mini
     async toggleMiniMode() {
+        if (this.isTogglingMiniMode) return;
+        this.isTogglingMiniMode = true;
         this.isMiniMode = !this.isMiniMode;
-        this.container.classList.toggle('mini-mode', this.isMiniMode);
 
-        // Si sortim del mode mini, tancar l'EQ mini si estava obert
-        if (!this.isMiniMode && this.isMiniEqOpen) {
-            this.isMiniEqOpen = false;
-            this.container.classList.remove('mini-show-eq');
+        // En entrar, la classe s'aplica abans d'encongir la finestra; en sortir, la finestra
+        // es restaura abans de treure la classe, per no pintar el layout complet a 340x140
+        if (this.isMiniMode) {
+            this.container.classList.add('mini-mode');
         }
 
         // Comunicar amb Tauri si està disponible
@@ -417,6 +418,16 @@ class TurntablePlayer {
                 console.error('Error Tauri Mini Mode:', e);
             }
         }
+
+        if (!this.isMiniMode) {
+            this.container.classList.remove('mini-mode');
+            // Si sortim del mode mini, tancar l'EQ mini si estava obert
+            if (this.isMiniEqOpen) {
+                this.isMiniEqOpen = false;
+                this.container.classList.remove('mini-show-eq');
+            }
+        }
+        this.isTogglingMiniMode = false;
 
         // Netejar sempre els estils inline de posició
         this.container.style.left = '';
