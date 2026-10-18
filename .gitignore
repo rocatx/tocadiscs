@@ -3,3 +3,12 @@ dist/
 .DS_Store
 *.log
 src-tauri/target/
+
+# Configuració local de Claude Code i worktrees temporals
+.claude/settings.local.json
+.claude/worktrees/
+
+# Instal·ladors: es publiquen com a GitHub Releases, no al repositori
+*.exe
+*.dmg
+*.msi
