@@ -4,24 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tocadisc</title>
-
-    <!-- PWA Meta tags -->
-    <meta name="theme-color" content="#1a1a1a">
+    <title>Tocadiscs</title>
     <meta name="description" content="Reproductor de música amb estètica de tocadiscos">
-    <link rel="manifest" href="manifest.json">
-
-    <!-- iOS support -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Tocadisc">
-    <link rel="apple-touch-icon" href="icons/icon-192.svg">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap"
-        rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -86,7 +70,7 @@
         <!-- Track Info -->
         <div class="track-display">
             <div class="track-now-playing">
-                <span class="track-title" id="trackTitle">Sense canço</span>
+                <span class="track-title" id="trackTitle">Sense cançó</span>
                 <span class="track-artist" id="trackArtist">---</span>
             </div>
         </div>
@@ -128,7 +112,7 @@
                     <path d="M6 6h12v12H6z" />
                 </svg>
             </button>
-            <button class="btn btn-control" id="btnNext" aria-label="Cançó següent" title="Seguent">
+            <button class="btn btn-control" id="btnNext" aria-label="Cançó següent" title="Següent">
                 <svg viewBox="0 0 24 24">
                     <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
                 </svg>
@@ -153,12 +137,13 @@
                 </svg>
             </button>
             <div class="volume-slider-container">
-                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80"
+                    aria-label="Volum">
             </div>
             <span class="balance-label">L</span>
             <div class="balance-slider-container">
                 <input type="range" class="balance-slider" id="balanceSlider" min="-100" max="100" value="0"
-                    title="Balanç">
+                    title="Balanç" aria-label="Balanç">
             </div>
             <span class="balance-label">R</span>
         </div>
@@ -190,6 +175,8 @@
                     </button>
                 </div>
             </div>
+
+            <p class="eq-unavailable-note">Aquesta URL no permet l'equalitzador ni el visualitzador.</p>
 
             <div class="eq-container">
                 <div class="equalizer" id="equalizer">
@@ -324,7 +311,7 @@
                     <span class="playlist-count" id="playlistCount">0 pistes</span>
                 </div>
                 <div class="playlist-search">
-                    <input type="text" id="playlistSearch" placeholder="Cercar...">
+                    <input type="text" id="playlistSearch" placeholder="Cercar..." aria-label="Cercar a la llista">
                     <button class="search-clear" id="searchClear" title="Esborrar cerca">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                             <path
@@ -337,8 +324,23 @@
         </div><!-- fi sidebar -->
     </div>
 
+    <!-- Diàleg propi (prompt/alert/confirm no funcionen dins Tauri) -->
+    <div class="modal-backdrop" id="modal" hidden>
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <h2 class="modal-title" id="modalTitle"></h2>
+            <p class="modal-message" id="modalMessage"></p>
+            <input class="modal-input" id="modalInput" type="text" autocomplete="off">
+            <ul class="modal-list" id="modalList"></ul>
+            <div class="modal-actions">
+                <button class="btn btn-text" id="modalCancel">Cancel·lar</button>
+                <button class="btn btn-text btn-primary" id="modalOk">D'acord</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
     <audio id="audioPlayer"></audio>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <script src="app.js"></script>
 </body>
 

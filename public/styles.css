@@ -1,6 +1,25 @@
 /* Bang & Olufsen Inspired Minimalist Design */
 /* Ultra-clean, white background, black elements */
 
+/* DM Sans local (variable, OFL — veure fonts/OFL.txt): l'app funciona sense connexió */
+@font-face {
+    font-family: 'DM Sans';
+    font-style: normal;
+    font-weight: 100 1000;
+    font-display: swap;
+    src: url('fonts/dm-sans-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: 'DM Sans';
+    font-style: normal;
+    font-weight: 100 1000;
+    font-display: swap;
+    src: url('fonts/dm-sans-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -1713,4 +1732,217 @@ body:has(.container.mini-mode) {
 .container.mini-mode>* {
     animation: none;
     opacity: 1;
+}
+
+/* Repetir una: marca "1" sobre la icona */
+.btn-control.repeat-one {
+    position: relative;
+}
+
+.btn-control.repeat-one::after {
+    content: '1';
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Fitxers arrossegats sobre la finestra */
+.container.drag-over,
+.file-input-label.drag-over {
+    outline: 1px dashed var(--text-secondary);
+    outline-offset: 4px;
+}
+
+/* Pista que no s'ha pogut trobar o reproduir */
+.playlist-item.unavailable .item-title,
+.playlist-item.unavailable .item-artist {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+/* URL sense CORS: l'equalitzador i el visualitzador no hi poden actuar */
+.eq-unavailable-note {
+    display: none;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.equalizer-section.eq-unavailable .eq-unavailable-note {
+    display: block;
+}
+
+.equalizer-section.eq-unavailable .eq-container {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.container.mini-mode .eq-unavailable-note {
+    display: none !important;
+}
+
+/* Diàleg */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.modal-backdrop[hidden] {
+    display: none;
+}
+
+.modal {
+    width: 100%;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    background: var(--bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 24px var(--shadow-color);
+}
+
+.modal [hidden] {
+    display: none !important;
+}
+
+.modal-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.modal-message {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.modal-input {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 10px;
+    color: var(--text-primary);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    outline: none;
+}
+
+.modal-input:focus {
+    border-color: var(--text-primary);
+}
+
+.modal-list {
+    list-style: none;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+}
+
+.modal-list li {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-list li:last-child {
+    border-bottom: none;
+}
+
+.modal-list-choice {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 13px;
+    text-align: left;
+    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.modal-list-choice:hover,
+.modal-list-choice:focus-visible {
+    background: var(--surface);
+}
+
+.modal-list-sublabel {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.modal-list-delete {
+    width: 32px;
+    align-self: stretch;
+    font-size: 16px;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.modal-list-delete:hover {
+    color: var(--text-primary);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.modal-actions .btn-text {
+    height: 32px;
+}
+
+.modal-actions .btn-primary {
+    color: var(--bg);
+    background: var(--text-primary);
+    border-color: var(--text-primary);
+}
+
+.modal-actions .btn-primary:hover {
+    color: var(--bg);
+    background: var(--accent-hover);
+}
+
+/* Avís temporal */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    z-index: 20001;
+    max-width: calc(100% - 32px);
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--bg);
+    background: var(--text-primary);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    transform: translate(-50%, 8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast.visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.container.mini-mode ~ .toast {
+    bottom: 4px;
+    font-size: 11px;
+    padding: 4px 10px;
 }
